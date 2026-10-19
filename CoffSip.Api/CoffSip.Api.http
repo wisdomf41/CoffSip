@@ -1,0 +1,6 @@
+@CoffSip.Api_HostAddress = http://localhost:5256
+
+GET {{CoffSip.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

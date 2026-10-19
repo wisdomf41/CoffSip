@@ -1,0 +1,108 @@
+
+
+// CoffSip target ERD. Week 1 implements MenuItem first; OwnerId and other entities arrive in Week 2.
+
+Table ApplicationUser {
+  Id uuid [pk]
+  Email varchar(256) [not null, unique]
+  DisplayName varchar(120) [not null]
+
+  Note: 'ASP.NET Core Identity with GUID keys; actual Identity schema also contains framework-managed security columns.'
+}
+
+Table MenuItem {
+  Id uuid [pk]
+  OwnerId uuid [not null, ref: > ApplicationUser.Id, note: 'Added through Week 2 ownership migration']
+  Name varchar(120) [not null]
+  Description varchar(500)
+  Category varchar(60) [not null]
+  Price decimal(12,2) [not null, note: 'Must be > 0']
+  IsAvailable boolean [not null, default: true]
+  IsArchived boolean [not null, default: false]
+  CreatedAt timestamptz [not null]
+  UpdatedAt timestamptz [not null]
+
+  Indexes {
+    (OwnerId, IsArchived)
+  }
+}
+
+Table CustomerOrder {
+  Id uuid [pk]
+  OwnerId uuid [not null, ref: > ApplicationUser.Id]
+  OrderNumber varchar(24) [not null]
+  Status varchar(20) [not null, note: 'Pending, Preparing, Ready, Completed, Cancelled']
+  TotalAmount decimal(12,2) [not null]
+  CreatedAt timestamptz [not null]
+  UpdatedAt timestamptz [not null]
+
+  Indexes {
+    (OwnerId, OrderNumber) [unique]
+    (OwnerId, CreatedAt)
+  }
+}
+
+Table OrderItem {
+  Id uuid [pk]
+  OrderId uuid [not null, ref: > CustomerOrder.Id]
+  MenuItemId uuid [not null, ref: > MenuItem.Id]
+  Quantity int [not null, note: 'Must be >= 1']
+  UnitPrice decimal(12,2) [not null, note: 'Price snapshot captured on order creation']
+
+  Indexes {
+    OrderId
+  }
+}
+
+// CoffSip target ERD. Week 1 implements MenuItem first; OwnerId and other entities arrive in Week 2.
+Table ApplicationUser {
+  Id uuid [pk]
+  Email varchar(256) [not null, unique]
+  DisplayName varchar(120) [not null]
+
+  Note: 'ASP.NET Core Identity with GUID keys; actual Identity schema also contains framework-managed security columns.'
+}
+
+Table MenuItem {
+  Id uuid [pk]
+  OwnerId uuid [not null, ref: > ApplicationUser.Id, note: 'Added through Week 2 ownership migration']
+  Name varchar(120) [not null]
+  Description varchar(500)
+  Category varchar(60) [not null]
+  Price decimal(12,2) [not null, note: 'Must be > 0']
+  IsAvailable boolean [not null, default: true]
+  IsArchived boolean [not null, default: false]
+  CreatedAt timestamptz [not null]
+  UpdatedAt timestamptz [not null]
+
+  Indexes {
+    (OwnerId, IsArchived)
+  }
+}
+
+Table CustomerOrder {
+  Id uuid [pk]
+  OwnerId uuid [not null, ref: > ApplicationUser.Id]
+  OrderNumber varchar(24) [not null]
+  Status varchar(20) [not null, note: 'Pending, Preparing, Ready, Completed, Cancelled']
+  TotalAmount decimal(12,2) [not null]
+  CreatedAt timestamptz [not null]
+  UpdatedAt timestamptz [not null]
+
+  Indexes {
+    (OwnerId, OrderNumber) [unique]
+    (OwnerId, CreatedAt)
+  }
+}
+
+Table OrderItem {
+  Id uuid [pk]
+  OrderId uuid [not null, ref: > CustomerOrder.Id]
+  MenuItemId uuid [not null, ref: > MenuItem.Id]
+  Quantity int [not null, note: 'Must be >= 1']
+  UnitPrice decimal(12,2) [not null, note: 'Price snapshot captured on order creation']
+
+  Indexes {
+    OrderId
+  }
+}

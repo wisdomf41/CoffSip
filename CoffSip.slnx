@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="../../../Downloads/CoffSip_BuildLab_Week1_Design_v2/CoffSip_BuildLab_Week1/docs/erd.png" />
+    <File Path="api-spec.md" />
+    <File Path="data-model.md" />
+    <File Path="database.dbml" />
+    <File Path="idea-one-pager.md" />
+    <File Path="work-plan.md" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="Solution Items/.dockerignore" />
+    <File Path="Solution Items/.env.example" />
+    <File Path="Solution Items/.gitignore" />
+    <File Path="Solution Items/Dockerfile" />
+    <File Path="Solution Items/README.md" />
+  </Folder>
+  <Project Path="CoffSip.Api/CoffSip.Api.csproj" Id="c897c53f-e9ae-4dc6-ba53-32c60f56a98f" />
+  <Project Path="CoffSip.Application/CoffSip.Application.csproj" Id="3baa8870-1148-43ff-b45f-8da4e49818ca" />
+  <Project Path="CoffSip.Domain/CoffSip.Domain.csproj" Id="6400cbb9-134c-418e-b6e8-7c71a22d541b" />
+  <Project Path="CoffSip.Infrastructure/CoffSip.Infrastructure.csproj" Id="b1a55428-cdca-4d63-bb3d-195868fdb8da" />
+</Solution>

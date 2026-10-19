@@ -1,0 +1,16 @@
+
+# Ignore local IDE settings, build outputs, secrets, and duplicate solution files.
+.vs/
+*.csproj.user
+*.suo
+
+**/bin/
+**/obj/
+**/TestResults/
+
+.env
+.env.*
+!.env.example
+**/secrets.json
+
+Solution Items/
