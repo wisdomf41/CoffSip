@@ -193,6 +193,8 @@ The ERD and planning documents show the intended broader system design. Not all 
 
 ## Version and project milestone
 
-The initial source release was committed as `Add menu management API`. The assessment milestone is tagged [`Step_1`](https://github.com/wisdomf41/CoffSip/tree/Step_1).
+The initial source release was committed as `Add menu management API`. The assessment milestone is tagged [`Week_1`](https://github.com/wisdomf41/CoffSip/tree/Step_1).
 
 This is an early functional release, not a claim that the application is production-ready.
+
+AI assistance was used when needed for more architectural planning, technical explanations and documentation.
