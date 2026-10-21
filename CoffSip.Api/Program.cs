@@ -3,11 +3,25 @@ using CoffSip.Application.MenuItems;
 using CoffSip.Infrastructure;
 using CoffSip.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Servers =
+        [
+            new OpenApiServer { Url = "/" }
+        ];
+
+        return Task.CompletedTask;
+    });
+});
+
 builder.Services.AddProblemDetails();
 builder.Services.AddScoped<MenuItemService>();
 builder.Services.AddInfrastructure(builder.Configuration);
