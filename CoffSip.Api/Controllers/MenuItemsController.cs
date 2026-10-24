@@ -1,81 +1,198 @@
-﻿using CoffSip.Application.MenuItems;
+﻿
+using CoffSip.Application.MenuItems;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CoffSip.Api.Controllers;
-
-// Implements the five documented MenuItem REST operations.
-[ApiController]
-[Route("api/menu-items")]
-public sealed class MenuItemsController : ControllerBase
+namespace CoffSip.Api.Controllers
 {
-    private readonly MenuItemService _service;
-
-    public MenuItemsController(MenuItemService service) => _service = service;
-
-    [HttpGet]
-    public async Task<IActionResult> List(CancellationToken ct) =>
-        Ok(await _service.ListAsync(ct));
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(string id, CancellationToken ct)
+    // Enforce authentication and pass the JWT subject into ownership-aware menu operations.
+    [ApiController]
+    [Route("api/menu-items")]
+    public sealed class MenuItemsController : ControllerBase
     {
-        if (!Guid.TryParse(id, out var parsedId)) return InvalidId();
-        var item = await _service.GetAsync(parsedId, ct);
-        return item is null ? MissingItem() : Ok(item);
-    }
+        private readonly MenuItemService _service;
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateMenuItemRequest request, CancellationToken ct)
-    {
-        try
+        public MenuItemsController(MenuItemService service)
         {
-            var item = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+            _service = service;
         }
-        catch (MenuItemValidationException ex)
-        {
-            return InvalidInput(ex);
-        }
-    }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(string id, [FromBody] UpdateMenuItemRequest request,
-        CancellationToken ct)
-    {
-        if (!Guid.TryParse(id, out var parsedId)) return InvalidId();
-        try
+        [HttpGet]
+        public async Task<IActionResult> List(CancellationToken ct)
         {
-            var item = await _service.UpdateAsync(parsedId, request, ct);
+            return Ok(await _service.ListAsync(ct));
+        }
+
+        [Authorize]
+        [HttpGet("mine")]
+        public async Task<IActionResult> Mine(CancellationToken ct)
+        {
+            var ownerId = GetCurrentUserId();
+
+            if (ownerId is null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(await _service.ListMineAsync(
+                ownerId.Value, ct));
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(
+            string id,
+            CancellationToken ct)
+        {
+            if (!Guid.TryParse(id, out var parsedId))
+            {
+                return InvalidId();
+            }
+
+            var item = await _service.GetAsync(parsedId, ct);
+
             return item is null ? MissingItem() : Ok(item);
         }
-        catch (MenuItemValidationException ex)
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Create(
+            [FromBody] CreateMenuItemRequest request,
+            CancellationToken ct)
         {
-            return InvalidInput(ex);
+            var ownerId = GetCurrentUserId();
+
+            if (ownerId is null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var item = await _service.CreateAsync(
+                    request, ownerId.Value, ct);
+
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = item.Id },
+                    item);
+            }
+            catch (MenuItemValidationException ex)
+            {
+                return InvalidInput(ex);
+            }
         }
-    }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(string id, CancellationToken ct)
-    {
-        if (!Guid.TryParse(id, out var parsedId)) return InvalidId();
-        return await _service.ArchiveAsync(parsedId, ct) ? NoContent() : MissingItem();
-    }
-
-    private IActionResult InvalidId() => ValidationProblem(
-        new ValidationProblemDetails(new Dictionary<string, string[]>
+        [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(
+            string id,
+            [FromBody] UpdateMenuItemRequest request,
+            CancellationToken ct)
         {
-            ["id"] = ["The id must be a valid UUID."]
-        })
-        { Status = 400, Title = "One or more validation errors occurred." });
+            if (!Guid.TryParse(id, out var parsedId))
+            {
+                return InvalidId();
+            }
 
-    private IActionResult InvalidInput(MenuItemValidationException ex) => ValidationProblem(
-        new ValidationProblemDetails(ex.Errors.ToDictionary(x => x.Key, x => x.Value))
-        { Status = 400, Title = "One or more validation errors occurred." });
+            var ownerId = GetCurrentUserId();
 
-    private IActionResult MissingItem() => NotFound(new ProblemDetails
-    {
-        Status = 404,
-        Title = "Menu item not found.",
-        Detail = "No active menu item matches the supplied ID."
-    });
+            if (ownerId is null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var item = await _service.UpdateAsync(
+                    parsedId, request, ownerId.Value, ct);
+
+                return item is null ? MissingItem() : Ok(item);
+            }
+            catch (MenuItemOwnershipException)
+            {
+                return OwnershipForbidden();
+            }
+            catch (MenuItemValidationException ex)
+            {
+                return InvalidInput(ex);
+            }
+        }
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(
+            string id,
+            CancellationToken ct)
+        {
+            if (!Guid.TryParse(id, out var parsedId))
+            {
+                return InvalidId();
+            }
+
+            var ownerId = GetCurrentUserId();
+
+            if (ownerId is null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var archived = await _service.ArchiveAsync(
+                    parsedId, ownerId.Value, ct);
+
+                return archived ? NoContent() : MissingItem();
+            }
+            catch (MenuItemOwnershipException)
+            {
+                return OwnershipForbidden();
+            }
+        }
+
+        private Guid? GetCurrentUserId()
+        {
+            return Guid.TryParse(
+                User.FindFirst("sub")?.Value,
+                out var userId)
+                    ? userId
+                    : null;
+        }
+
+        private IActionResult OwnershipForbidden()
+        {
+            return Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "You do not own this menu item.");
+        }
+
+        private IActionResult InvalidId() => ValidationProblem(
+            new ValidationProblemDetails(
+                new Dictionary<string, string[]>
+                {
+                    ["id"] = ["The id must be a valid UUID."]
+                })
+            {
+                Status = 400,
+                Title = "One or more validation errors occurred."
+            });
+
+        private IActionResult InvalidInput(
+            MenuItemValidationException ex) => ValidationProblem(
+            new ValidationProblemDetails(
+                ex.Errors.ToDictionary(
+                    x => x.Key,
+                    x => x.Value))
+            {
+                Status = 400,
+                Title = "One or more validation errors occurred."
+            });
+
+        private IActionResult MissingItem() => NotFound(
+            new ProblemDetails
+            {
+                Status = 404,
+                Title = "Menu item not found.",
+                Detail = "No active menu item matches the supplied ID."
+            });
+    }
 }
