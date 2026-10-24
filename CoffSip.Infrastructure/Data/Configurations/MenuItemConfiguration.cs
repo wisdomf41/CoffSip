@@ -2,6 +2,7 @@
 using CoffSip.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using CoffSip.Infrastructure.Identity;
 
 namespace CoffSip.Infrastructure.Data.Configurations;
 
@@ -16,6 +17,14 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
                 "\"Price\" > 0"));
 
         builder.HasKey(x => x.Id);
+
+        // this will establish the optional operator-to-menu-item relationship.
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(item => item.OwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(item => item.OwnerId);
 
         builder.Property(x => x.Name)
             .HasMaxLength(120)
