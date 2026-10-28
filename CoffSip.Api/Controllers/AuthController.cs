@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using CoffSip.Api.Authentication;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CoffSip.Api.Controllers
 {
     [ApiController]
     [Route("api/auth")]
+    [EnableRateLimiting("auth")]
     public sealed class AuthController(
     IAuthenticationService authenticationService,
     JwtTokenService jwtTokenService)

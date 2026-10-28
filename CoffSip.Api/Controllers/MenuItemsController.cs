@@ -17,10 +17,30 @@ namespace CoffSip.Api.Controllers
             _service = service;
         }
 
+        // Accept optional pagination parameters with safe limits.
         [HttpGet]
-        public async Task<IActionResult> List(CancellationToken ct)
+        public async Task<IActionResult> List(
+            [FromQuery] int? page,
+            [FromQuery] int? pageSize,
+            CancellationToken ct)
         {
-            return Ok(await _service.ListAsync(ct));
+            var currentPage = page ?? 1;
+            var currentSize = pageSize ?? 10;
+
+            if (currentPage < 1 ||
+                currentPage > 10000 ||
+                currentSize < 1 ||
+                currentSize > 50)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Invalid pagination parameters."
+                });
+            }
+
+            return Ok(await _service.ListAsync(
+                currentPage, currentSize, ct));
         }
 
         [Authorize]

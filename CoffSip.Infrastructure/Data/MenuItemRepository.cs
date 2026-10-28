@@ -15,11 +15,19 @@ public sealed class MenuItemRepository : IMenuItemRepository
         _db = db;
     }
 
+
+    // Apply pagination in PostgreSQL instead of loading every menu item.
     public Task<List<MenuItem>> ListActiveAsync(
+        int page,
+        int pageSize,
         CancellationToken ct) =>
-        _db.MenuItems.AsNoTracking()
+        _db.MenuItems
+            .AsNoTracking()
             .Where(x => !x.IsArchived)
             .OrderBy(x => x.Name)
+            .ThenBy(x => x.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(ct);
 
     public Task<List<MenuItem>> ListOwnedActiveAsync(
