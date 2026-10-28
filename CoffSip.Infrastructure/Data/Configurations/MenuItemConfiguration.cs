@@ -1,5 +1,4 @@
-﻿
-using CoffSip.Domain.Entities;
+﻿using CoffSip.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using CoffSip.Infrastructure.Identity;
@@ -48,6 +47,15 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(x => x.IsArchived)
             .HasDefaultValue(false)
             .IsRequired();
+
+        // Optimize active menu filtering and stable pagination ordering.
+        builder.HasIndex(x => new
+        {
+            x.IsArchived,
+            x.Name,
+            x.Id
+        });
+
 
         builder.Property(x => x.CreatedAt)
             .HasColumnType("timestamp with time zone")

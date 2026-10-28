@@ -18,4 +18,5 @@
   <Project Path="CoffSip.Application/CoffSip.Application.csproj" Id="3baa8870-1148-43ff-b45f-8da4e49818ca" />
   <Project Path="CoffSip.Domain/CoffSip.Domain.csproj" Id="6400cbb9-134c-418e-b6e8-7c71a22d541b" />
   <Project Path="CoffSip.Infrastructure/CoffSip.Infrastructure.csproj" Id="b1a55428-cdca-4d63-bb3d-195868fdb8da" />
+  <Project Path="CoffSip.Tests/CoffSip.Tests.csproj" Id="84442a14-b098-440c-ac4f-5138283220e3" />
 </Solution>

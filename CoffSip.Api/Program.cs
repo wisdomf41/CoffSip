@@ -1,13 +1,13 @@
 
+using CoffSip.Api.Authentication;
 using CoffSip.Application.MenuItems;
 using CoffSip.Infrastructure;
 using CoffSip.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
-using System.Text;
-using CoffSip.Api.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using System.Text;
+using System.Threading.RateLimiting;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +41,9 @@ builder.Services.AddOpenApi(options =>
 
         foreach (var path in document.Paths)
         {
+            if (path.Value?.Operations is not { } operations)
+                continue;
+
             foreach (var method in path.Value.Operations)
             {
                 var route = path.Key;
@@ -133,6 +136,27 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// Limit authentication requests per client to reduce automated login and registration abuse.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode =
+        StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey:
+                context.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+});
+
+
 
 var port = Environment.GetEnvironmentVariable("PORT");
 
@@ -173,6 +197,8 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -192,3 +218,6 @@ app.MapGet("/health/ready",
                 StatusCodes.Status503ServiceUnavailable));
 
 app.Run();
+
+// Expose the application entry point to integration tests.
+public partial class Program { }

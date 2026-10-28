@@ -6,6 +6,8 @@ namespace CoffSip.Application.MenuItems
     public interface IMenuItemRepository
     {
         Task<List<MenuItem>> ListActiveAsync(
+            int page,
+            int pageSize,
             CancellationToken cancellationToken);
 
         Task<List<MenuItem>> ListOwnedActiveAsync(

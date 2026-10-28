@@ -69,6 +69,8 @@ namespace CoffSip.Infrastructure.Data.Migrations
 
                     b.HasIndex("OwnerId");
 
+                    b.HasIndex("IsArchived", "Name", "Id");
+
                     b.ToTable("MenuItems", null, t =>
                         {
                             t.HasCheckConstraint("CK_MenuItems_Price_Positive", "\"Price\" > 0");

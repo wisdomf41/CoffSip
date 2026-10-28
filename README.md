@@ -304,3 +304,50 @@ The original ERD, DBML, and API specification describe the initial design and ma
 
 ## Development acknowledgements
 AI assistance was used also when needed for more architectural planning, technical explanations and documentation.
+
+## Testing
+
+CoffSip uses xUnit for automated testing.
+
+The test suite includes:
+- Menu validation tests
+- Menu ownership and authorization tests
+- Soft-delete behavior tests
+- API integration tests for HTTP 400, 401, 403, and 404 responses
+
+Run all tests:
+
+```bash
+dotnet test CoffSip.Tests/CoffSip.Tests.csproj
+```
+
+The API integration tests use an isolated test host and a
+fake menu repository. They do not test actual PostgreSQL persistence.
+
+## Security
+
+- ASP.NET Core Identity handles password hashing and account management.
+- JWT authentication protects menu management endpoints.
+- Operators can modify and archive only their own menu items.
+- Authentication endpoints use rate limiting.
+- Secrets are managed through configuration and environment variables.
+
+## Pagination
+
+The public menu endpoint supports pagination:
+
+GET /api/menu-items?page=1&pageSize=10
+
+- Default page: 1
+- Default page size: 10
+- Maximum page size: 50
+- Invalid pagination parameters return HTTP 400.
+
+A PostgreSQL index supports active-menu filtering and pagination ordering.
+
+## Current Limitations
+
+- No customer ordering or payment functionality.
+- Authentication rate limiting is basic and requires trusted
+  proxy configuration review before larger-scale production use.
+- Integration tests use fake persistence rather than a real test database.

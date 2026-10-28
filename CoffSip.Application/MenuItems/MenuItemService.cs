@@ -14,9 +14,11 @@ namespace CoffSip.Application.MenuItems
         }
 
         public async Task<IReadOnlyList<MenuItemResponse>> ListAsync(
+            int page,
+            int pageSize,
             CancellationToken ct)
         {
-            var items = await _repository.ListActiveAsync(ct);
+            var items = await _repository.ListActiveAsync(page, pageSize, ct);
 
             return items
                 .Select(MenuItemResponse.FromEntity)

@@ -219,3 +219,40 @@ In **Week 2**, extend this specification to cover registration/login, order crea
 In **Week 3**, document pagination/filtering, rate limiting and other security controls, API test coverage, and setup/deployment instructions.
 
 **Related design files:** `docs/data-model.md`, `docs/database.dbml`, `docs/erd.png`, and `docs/work-plan.md`.
+
+### Menu Pagination
+
+GET /api/menu-items?page=1&pageSize=10
+
+Query parameters:
+- page: Default 1, minimum 1, maximum 10000
+- pageSize: Default 10, minimum 1, maximum 50
+
+Responses:
+- 200 OK: Paginated menu items as a JSON array
+- 400 Bad Request: Invalid pagination parameters
+
+### Authentication Rate Limiting
+
+Applies to:
+- POST /api/auth/register
+- POST /api/auth/login
+
+Limit: 20 requests per minute per client IP.
+
+Responses:
+- 429 Too Many Requests: Request limit exceeded
+
+### Automated Testing
+
+Framework: xUnit
+
+- 7 unit tests
+- 4 HTTP integration tests
+- Tests cover validation, ownership, soft deletion,
+  and HTTP 400, 401, 403, and 404 responses.
+
+Run:
+dotnet test CoffSip.Tests/CoffSip.Tests.csproj
+
+Integration tests use isolated fake persistence.
